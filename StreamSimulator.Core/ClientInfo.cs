@@ -24,6 +24,7 @@ namespace StreamSimulator.Core
         public event Disconnect OnDisconnect;
         #endregion
 
+        public Guid ClientId { get; }
         private readonly TcpClient _tcpClient;
         private NetworkStream _networkStream;
         private Task _listeningTask;
@@ -32,25 +33,18 @@ namespace StreamSimulator.Core
         private bool _keepListening = true;
         private bool _keepSending = true;
         private int _sleepTimer = 2500;
-        private bool _sendNaNValues = false;
-        private List<string> _symbols = new List<string>();
-
-
-        public Guid ClientId { get; }
-        private StreamSettings _settings;
+        private readonly List<string> _symbols;
+        private readonly StreamSettings _settings;
 
         public ClientInfo(TcpClient tcpClient, StreamSettings settings)
         {
             ClientId = Guid.NewGuid();
+
+            _symbols = new List<string>();
             _tcpClient = tcpClient;
             _settings = settings;
 
             StartListening();
-        }
-
-        public void SendNaNValues(bool flag)
-        {
-            _sendNaNValues = flag;
         }
 
         public void StartListening()
@@ -144,9 +138,17 @@ namespace StreamSimulator.Core
                 if (string.Compare("MESSAGE", symbol, true) == 0 || _symbols.Contains(symbol))
                 {
                     var data = ConvertData(input);
-                    _networkStream.Write(data, 0, data.Length);
 
-                    $" SENDING | {input}".Dump();
+                    try
+                    {
+                        _networkStream.Write(data, 0, data.Length);
+                    }
+                    catch(Exception ex)
+                    {
+                        $"### Client {ClientId} throws exception: {ex.Message}".Dump();
+                    }
+
+                    // $" SENDING | {input}".Dump();
                 }
             }
         }
@@ -175,12 +177,6 @@ namespace StreamSimulator.Core
             $"### Client {ClientId} was terminated...".Dump();
 
             OnDisconnect?.Invoke(ClientId);
-        }
-
-        public void SetSleepTimer(int sleepTime)
-        {
-            $"### Client {ClientId} adjusts sleepTimer to {sleepTime}ms...".Dump();
-            _sleepTimer = sleepTime;
         }
 
         private byte[] ConvertData(string data, bool suppressEndline = false)

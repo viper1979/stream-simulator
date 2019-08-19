@@ -21,8 +21,8 @@ namespace StreamSimulator.Core
             { "ping", "pong" }
         };
         public bool AllowCustomMessageInjection { get; set; } = false;
-        public int SimultaniousMessageCount { get; set; } = 1;
-        public double MessagesPerSecond { get; set; } = 1;
+        public int SimultaneousMessageCount { get; set; } = 1;
+        public int MessagesPerSecond { get; set; } = 1;
         public bool AllowSubscribe { get; set; } = true;
         public string SubscribeCommand { get; set; } = "subscribe,sub";
         public bool AllowUnsubscribe { get; set; } = true;

@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace StreamSimulator.Core
 {
     public class StreamManager
     {
-        private Dictionary<int, StreamingServer> _streamSimulators;
+        private readonly Dictionary<int, StreamingServer> _streamSimulators;
 
         public StreamManager()
         {
             _streamSimulators = new Dictionary<int, StreamingServer>();
         }
 
-        public void AddSimulator(StreamSettings settings)
+        public StreamingServer Add(StreamSettings settings)
         {
-            if (this._streamSimulators.ContainsKey(settings.ListeningPort))
+            if (_streamSimulators.ContainsKey(settings.ListeningPort))
             {
                 throw new ArgumentException("port is already assigned.");
             }
@@ -25,19 +24,32 @@ namespace StreamSimulator.Core
             simulator.Start();
 
             _streamSimulators.Add(simulator.ListeningPort, simulator);
+            return simulator;
         }
 
-        public bool RemoveSimulator(Guid identifier)
+        public bool Stop(int port)
         {
-            var simulator = _streamSimulators.FirstOrDefault(item => item.Value.Identifier == identifier).Value;
-            if (simulator != null)
-            {
-                simulator.Stop();
-                _streamSimulators.Remove(simulator.ListeningPort);
-                return true;
-            }
+            if (!_streamSimulators.ContainsKey(port)) return false;
 
-            return false;
+            _streamSimulators[port].Stop();
+            return true;
+        }
+
+        public bool Start(int port)
+        {
+            if (!_streamSimulators.ContainsKey(port)) return false;
+
+            _streamSimulators[port].Start();
+            return true;
+        }
+
+        public bool Remove(int port)
+        {
+            if (!_streamSimulators.ContainsKey(port)) return false;
+
+            _streamSimulators[port].Stop();
+            _streamSimulators.Remove(port);
+            return true;
         }
 
         public string[] GetSimulators()

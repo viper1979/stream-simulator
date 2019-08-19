@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Fare;
+using StreamSimulator.Core.Extensions;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +9,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Fare;
-using StreamSimulator.Core.Extensions;
 
 namespace StreamSimulator.Core
 {
-    class StreamingServer
+    public class StreamingServer
     {
         public delegate void MessageUpdate(string symbol, string message);
         public event MessageUpdate OnMessageUpdate;
@@ -25,16 +25,11 @@ namespace StreamSimulator.Core
         private readonly StreamSettings _streamSettings;
         private readonly Xeger _xeger;
         private bool _keepListening = true;
+        private StringBuilder _batchStringBuilder = new StringBuilder();
 
         private bool _forceSendUpdate = true;
-        private bool _silentMode = false;
-        private Dictionary<string, int> _symbols = new Dictionary<string, int>();
-
-        public bool SilentMode
-        {
-            get { return _silentMode; }
-            set { $"### SilentMode set to {value}".Dump(); _silentMode = value; }
-        }
+        private bool _silentMode;
+        private readonly Dictionary<string, int> _symbols;
 
         public static StreamingServer CreateServer(StreamSettings settings)
         {
@@ -45,6 +40,7 @@ namespace StreamSimulator.Core
         {
             Identifier = Guid.NewGuid();
             _streamSettings = settings;
+            _symbols = new Dictionary<string, int>();
             _xeger = new Xeger(_streamSettings.MessagePattern, new Random(DateTime.Now.Millisecond));
 
             _listener = new TcpListener(ipAddress, _streamSettings.ListeningPort);
@@ -57,7 +53,7 @@ namespace StreamSimulator.Core
 
             $"### Server started...".Dump();
 
-            StartSendUpdates();
+            Initialize();
 
             AcceptConnections();
         }
@@ -151,7 +147,7 @@ namespace StreamSimulator.Core
             }
         }
 
-        private void StartSendUpdates()
+        private void Initialize()
         {
             if (_cancellationTokenSource == null)
             {
@@ -180,24 +176,55 @@ namespace StreamSimulator.Core
                     continue;
                 }
 
-                SendMessages();
+                var startTime = DateTime.Now;
 
-                var messagesInterval = (int)Math.Round(1000 / _streamSettings.MessagesPerSecond);
+                SendMessages(_streamSettings.SimultaneousMessageCount, _streamSettings.MessagesPerSecond);
 
-                if (messagesInterval > 0)
+                var consumedTime = DateTime.Now.Subtract(startTime);
+                if (consumedTime.TotalMilliseconds < 1000)
                 {
-                    Thread.Sleep(messagesInterval);
+                    Thread.Sleep(1000 - (int) consumedTime.TotalMilliseconds);
                 }
+
+                $"Messages Per Second: {_streamSettings.MessagesPerSecond / consumedTime.TotalSeconds}".Dump();
             }
         }
 
-        private void SendMessages()
+        private void SendMessages(int batchSize, int messagesPerSecond)
         {
             var symbol = _streamSettings.Symbols.FirstOrDefault() ?? "DummySymbol";
             // 'MESSAGE' just sends the message to the client without filtering for a symbol
             if (!SilentMode)
             {
-                OnMessageUpdate?.Invoke("MESSAGE", symbol + ";" + _xeger.Generate());
+                for (int i = 0; i < messagesPerSecond; i++)
+                {
+                    _batchStringBuilder.Clear();
+
+                    for (int j = 0; j < batchSize; j++)
+                    {
+                        int lineCount = 0;
+                        int index = 0;
+
+                        while (lineCount < _symbols.Count)
+                        {
+                            if (index >= _symbols.Count)
+                            {
+                                index = 0;
+                            }
+
+                            _batchStringBuilder.AppendLine($"{_symbols.ElementAt(index).Key};{_xeger.Generate()}");
+                        }
+                    }
+
+                    OnMessageUpdate?.Invoke("MESSAGE", symbol + ";" + _xeger.Generate());
+                }
+
+
+
+                for (int i = 0; i < _streamSettings.SimultaneousMessageCount; i++)
+                {
+                    
+                }
             }
         }
 
@@ -207,9 +234,9 @@ namespace StreamSimulator.Core
             {
                 if (!SilentMode)
                 {
-                    OnMessageUpdate?.Invoke("MESSAGE", "HB");
+                    OnMessageUpdate?.Invoke("MESSAGE", _streamSettings.HeartbeatPattern);
                 }
-                Thread.Sleep(5000);
+                Thread.Sleep(_streamSettings.HeartbeatIntervalMs);
             }
         }
 
@@ -220,6 +247,12 @@ namespace StreamSimulator.Core
         public Guid Identifier { get; }
 
         public int ListeningPort => _streamSettings.ListeningPort;
+
+        public bool SilentMode
+        {
+            get { return _silentMode; }
+            set { $"### SilentMode set to {value}".Dump(); _silentMode = value; }
+        }
 
         #endregion
     }
