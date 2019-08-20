@@ -20,12 +20,13 @@ namespace StreamSimulator.Core
         private readonly TcpListener _listener;
         private Task _generateUpdatesTask;
         private Task _generateHeartbeatTask;
+        private Task _checkClientAvailabilityTask;
         public ConcurrentBag<ClientInfo> Clients = new ConcurrentBag<ClientInfo>();
         private CancellationTokenSource _cancellationTokenSource;
         private readonly StreamSettings _streamSettings;
         private readonly Xeger _xeger;
         private bool _keepListening = true;
-        private StringBuilder _batchStringBuilder = new StringBuilder();
+        private readonly StringBuilder _batchStringBuilder = new StringBuilder();
 
         private bool _forceSendUpdate = true;
         private bool _silentMode;
@@ -155,11 +156,17 @@ namespace StreamSimulator.Core
             }
 
             _generateUpdatesTask = new Task(this.SendQuoteUpdate, _cancellationTokenSource.Token);
+            _generateUpdatesTask.ContinueWith(x => "### Task 'GenerateUpdates' restarting...".Dump(), TaskContinuationOptions.OnlyOnFaulted);
             _generateUpdatesTask.Start();
+
+            _checkClientAvailabilityTask = new Task(CheckClientAvailability, _cancellationTokenSource.Token);
+            _checkClientAvailabilityTask.ContinueWith(x => "### Task 'CheckClientAvailability' restarting...".Dump(), TaskContinuationOptions.OnlyOnFaulted);
+            _checkClientAvailabilityTask.Start();
 
             if (_streamSettings.SendHeartbeat)
             {
                 _generateHeartbeatTask = new Task(this.SendHeartbeatUpdate, _cancellationTokenSource.Token);
+                _generateHeartbeatTask.ContinueWith(x => "### Task 'GenerateHeartbeats' restarting...".Dump(), TaskContinuationOptions.OnlyOnFaulted);
                 _generateHeartbeatTask.Start();
             }
         }
@@ -186,44 +193,46 @@ namespace StreamSimulator.Core
                     Thread.Sleep(1000 - (int) consumedTime.TotalMilliseconds);
                 }
 
-                $"Messages Per Second: {_streamSettings.MessagesPerSecond / consumedTime.TotalSeconds}".Dump();
+                $"SERVER >> msg/sec: {_streamSettings.MessagesPerSecond / consumedTime.TotalSeconds}".Dump();
             }
         }
 
-        private void SendMessages(int batchSize, int messagesPerSecond)
+        private void SendMessages(int messagesPerSecond, int batchSize)
         {
-            var symbol = _streamSettings.Symbols.FirstOrDefault() ?? "DummySymbol";
             // 'MESSAGE' just sends the message to the client without filtering for a symbol
-            if (!SilentMode)
+            int index = 0;
+            for (int i = 0; i < messagesPerSecond; i++)
             {
-                for (int i = 0; i < messagesPerSecond; i++)
+                if (batchSize <= 1)
                 {
-                    _batchStringBuilder.Clear();
-
-                    for (int j = 0; j < batchSize; j++)
+                    if (index >= _streamSettings.Symbols.Count)
                     {
-                        int lineCount = 0;
-                        int index = 0;
-
-                        while (lineCount < _symbols.Count)
-                        {
-                            if (index >= _symbols.Count)
-                            {
-                                index = 0;
-                            }
-
-                            _batchStringBuilder.AppendLine($"{_symbols.ElementAt(index).Key};{_xeger.Generate()}");
-                        }
+                        index = 0;
                     }
 
-                    OnMessageUpdate?.Invoke("MESSAGE", symbol + ";" + _xeger.Generate());
+                    var symbol = _streamSettings.Symbols[index];
+
+                    OnMessageUpdate?.Invoke("MESSAGE", $"{symbol};{_xeger.Generate()}");
+
+                    index++;
                 }
-
-
-
-                for (int i = 0; i < _streamSettings.SimultaneousMessageCount; i++)
+                else
                 {
-                    
+                    for (int j = 0; j < batchSize; j++)
+                    {
+                        if (index >= _streamSettings.Symbols.Count)
+                        {
+                            index = 0;
+                        }
+
+                        var symbol = _streamSettings.Symbols[index];
+
+                        _batchStringBuilder.Append($"{symbol};{_xeger.Generate()}");
+
+                        index++;
+                    }
+
+                    OnMessageUpdate?.Invoke("MESSAGE",_batchStringBuilder.ToString());
                 }
             }
         }
@@ -237,6 +246,26 @@ namespace StreamSimulator.Core
                     OnMessageUpdate?.Invoke("MESSAGE", _streamSettings.HeartbeatPattern);
                 }
                 Thread.Sleep(_streamSettings.HeartbeatIntervalMs);
+            }
+        }
+
+        private void CheckClientAvailability()
+        {
+            while (_cancellationTokenSource.IsCancellationRequested == false)
+            {
+                Thread.Sleep(5000);
+                if (Clients.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (var client in Clients)
+                {
+                    if (!client.IsClientConnected)
+                    {
+                        OnDisconnectHandler(client.ClientId);
+                    }
+                }
             }
         }
 

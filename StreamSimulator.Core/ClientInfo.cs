@@ -32,7 +32,6 @@ namespace StreamSimulator.Core
 
         private bool _keepListening = true;
         private bool _keepSending = true;
-        private int _sleepTimer = 2500;
         private readonly List<string> _symbols;
         private readonly StreamSettings _settings;
 
@@ -191,7 +190,9 @@ namespace StreamSimulator.Core
 
         public override string ToString()
         {
-            return $"Client {ClientId} | listening? {_keepListening} | sending? {_keepSending} | message interval: {_sleepTimer}ms";
+            return $"Client {ClientId} | listening? {_keepListening} | sending? {_keepSending}";
         }
+
+        public bool IsClientConnected => _tcpClient?.Connected ?? false;
     }
 }
