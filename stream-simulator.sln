@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.705
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamSimulatorApi", "StreamSimulatorApi\StreamSimulatorApi.csproj", "{48318983-5B28-4FC3-B368-72F8D6442162}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamSimulatorApi", "StreamSimulatorApi\StreamSimulatorApi.csproj", "{48318983-5B28-4FC3-B368-72F8D6442162}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamSimulator.Core", "StreamSimulator.Core\StreamSimulator.Core.csproj", "{73C3C3AB-13E3-46C9-93CF-94699E3D0AA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreamSimulator.Core", "StreamSimulator.Core\StreamSimulator.Core.csproj", "{73C3C3AB-13E3-46C9-93CF-94699E3D0AA0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamSimulator.Cli", "StreamSimulator.Cli\StreamSimulator.Cli.csproj", "{AC513AEE-FDEA-4150-A3C0-C60BBBAAA559}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{73C3C3AB-13E3-46C9-93CF-94699E3D0AA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73C3C3AB-13E3-46C9-93CF-94699E3D0AA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73C3C3AB-13E3-46C9-93CF-94699E3D0AA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC513AEE-FDEA-4150-A3C0-C60BBBAAA559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC513AEE-FDEA-4150-A3C0-C60BBBAAA559}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC513AEE-FDEA-4150-A3C0-C60BBBAAA559}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC513AEE-FDEA-4150-A3C0-C60BBBAAA559}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

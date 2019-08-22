@@ -36,7 +36,7 @@ namespace StreamSimulatorApi.Controllers
                 HeartbeatIntervalMs = 5000,
                 SendReplyCommands = true,
             };
-            _manager.AddSimulator(settings);
+            _manager.Add(settings);
 
             return "Ok";
         }
