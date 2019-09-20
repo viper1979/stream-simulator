@@ -1,0 +1,15 @@
+﻿@page
+@model StreamSimulator.WebApp.Pages.StreamManagerModel
+@{
+    ViewData["Title"] = "StreamManager";
+}
+
+<h2>StreamManager</h2>
+
+@foreach(var streamingServer in Model._currentStreams)
+{
+    <li>
+        <a href="/StreamDetail?port=@(streamingServer.ListeningPort)">@(streamingServer.Identifier) : @(streamingServer.ListeningPort)</a>
+    </li>
+}
+

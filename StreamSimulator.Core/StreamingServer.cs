@@ -277,6 +277,8 @@ namespace StreamSimulator.Core
 
         public int ListeningPort => _streamSettings.ListeningPort;
 
+        public StreamSettings Settings => _streamSettings;
+
         public bool SilentMode
         {
             get { return _silentMode; }

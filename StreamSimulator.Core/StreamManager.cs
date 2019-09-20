@@ -52,14 +52,18 @@ namespace StreamSimulator.Core
             return true;
         }
 
-        public string[] GetSimulators()
+        public StreamingServer Get(int port)
         {
-            return _streamSimulators.Select(item =>
+            if (_streamSimulators.ContainsKey(port))
             {
-                return "Guid: " + item.Value.Identifier.ToString() + 
-                       " Port: " + item.Value.ListeningPort +
-                       " Clients: " + item.Value.Clients.Count;
-            }).ToArray();
+                return _streamSimulators[port];
+            }
+            return null;
+        }
+
+        public StreamingServer[] GetSimulators()
+        {
+            return _streamSimulators.Select(item => item.Value).ToArray();
         }
     }
 }

@@ -1,0 +1,42 @@
+﻿@page
+@model StreamSimulator.WebApp.Pages.CreateStreamModel
+@{
+    ViewData["Title"] = "CreateStream";
+}
+
+<h2>CreateStream</h2>
+
+@using (Html.BeginForm(FormMethod.Post, new { @class = "form-horizontal" }))
+{
+    <div class="from-group">
+        @Html.LabelFor(m => m.Settings.ListeningPort, new { @class = "col-sm-2 control-label" })
+        <div class="col-sm-10">
+            <input type="text" id="@Html.IdFor(m => m.Settings.ListeningPort)" class="form-control" placeholder="Port" aria-describedby="sizing-addon2" value="@(Model.Settings.ListeningPort)">
+        </div>
+    </div>
+
+    <div class="from-group">
+        @Html.LabelFor(m => m.Settings.MessagePattern, new { @class = "col-sm-2 control-label" })
+        <div class="col-sm-10">
+            <input type="text" class="form-control" placeholder="Port" aria-describedby="sizing-addon2" value="@(Model.Settings.MessagePattern)">
+        </div>
+    </div>
+
+    <div class="from-group">
+        @Html.LabelFor(m => m.Settings.MessagesPerSecond, new { @class = "col-sm-2 control-label" })
+        <div class="col-sm-10">
+            <input type="text" class="form-control" placeholder="Port" aria-describedby="sizing-addon2" value="@(Model.Settings.MessagesPerSecond)">
+        </div>
+    </div>
+
+
+    <div class="checkbox">
+        <label>
+            @Html.CheckBoxFor(m => m.Settings.SendHeartbeat)
+            Send Heartbeat
+        </label>
+    </div>
+
+
+    <button id="btnCreate" class="btn btn-default">Erstellen</button>
+}

@@ -22,7 +22,7 @@ namespace StreamSimulatorApi.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
-            return _manager.GetSimulators();
+            return _manager.GetSimulators().Select(item => item.ToString()).ToList();
         }
 
         // GET api/stream/5

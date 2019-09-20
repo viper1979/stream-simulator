@@ -1,0 +1,43 @@
+﻿@page
+@model StreamSimulator.WebApp.Pages.StreamDetailModel
+@{
+    ViewData["Title"] = "StreamDetail";
+}
+
+<h2>StreamDetail</h2>
+
+@using (Html.BeginForm(FormMethod.Post, new { @class = "form-horizontal" }))
+{
+    <table>
+        <tr>
+            <td>@Html.LabelFor(m => m.StreamSettings.ListeningPort)</td>
+            <td>@Html.EditorFor(m => m.StreamSettings.ListeningPort)</td>
+        </tr>
+        <tr>
+            <td>@Html.LabelFor(m => m.StreamSettings.MessagePattern)</td>
+            <td>@Html.EditorFor(m => m.StreamSettings.MessagePattern)</td>
+        </tr>
+        <tr>
+            <td>@Html.LabelFor(m => m.StreamSettings.MessagesPerSecond)</td>
+            <td>@Html.EditorFor(m => m.StreamSettings.MessagesPerSecond)</td>
+        </tr>
+
+        <tr>
+            <td>@Html.LabelFor(m => m.StreamSettings.SendHeartbeat)</td>
+            <td>@Html.EditorFor(m => m.StreamSettings.SendHeartbeat)</td>
+        </tr>
+        <tr>
+            <td>@Html.LabelFor(m => m.StreamSettings.HeartbeatIntervalMs)</td>
+            <td>@Html.EditorFor(m => m.StreamSettings.HeartbeatIntervalMs)</td>
+        </tr>
+        <tr>
+            <td>@Html.LabelFor(m => m.StreamSettings.HeartbeatPattern)</td>
+            <td>@Html.EditorFor(m => m.StreamSettings.HeartbeatPattern)</td>
+        </tr>
+
+    </table>
+
+    <button id="btnUpdate" class="btn btn-default">Aktualisieren</button>
+    <button id="btnStop" class="btn btn-default">Stoppen</button>
+    <button id="btnKill" class="btn btn-default">L&ouml;schen</button>
+}
